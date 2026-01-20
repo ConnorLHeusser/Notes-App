@@ -1,2 +1,2 @@
 # Notes-App
-This program serves as an application where one can write passwords and other reminders.
+This program serves as an application where one can write passwords and other reminders in the form of Notes. The reaso behind this choice of program was because it will have relativley less time consuming UI to implement so that we will have more time to make the program work. The program uses exclusivly Python for its code as we felt it was within our abilities to use it for both the main program and the backend code.
