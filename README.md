@@ -6,7 +6,7 @@ Currently the program contains this README, the Date file and the Backend-Logic 
 
 
  
-To create a build of this program first click on the green button that says code. Next click on the two overlaping squares next to the URL to copy it. Then go into your codding site/app of choice and open the console. then, in the console, type git clone and then paste the URL. Finally press enter and then you will have a build of this program. If you would like to then run the program open Backend-Logic file, open Code.py and then click on the run python file button in the top right.
+To create a build of this program first click on the green button that says code. Next click on the two overlaping squares next to the URL to copy it. Then go into your codding site/app of choice and open the console. then, in the console, type git clone and then paste the URL. Finally press enter and then you will have a build of this program. If you would like to then run the program open Backend-Logic file, open Code.py and then click on the run code/file button.
 
 
 Currently the program is lacking proper UI, the functionallity to allow the user to create multiple files to store their notes in and the functionallity to allow notes made by the user to carry over to the next time the program is run.
