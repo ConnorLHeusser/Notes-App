@@ -1,11 +1,10 @@
-notes = input("Enter new notes here (type e to exit): ")
-new_notes = notes
-#Chose to go with a while loop as it was the easiest prototype for us to implement for our program
-while (new_notes != "e"):
-    # Loop with an exit condition 'e' to add new inputed notes into a 'new_notes' variable
-    print("")
-    print(notes)
-    print("")
-    new_notes = input("Enter new notes here (type e to exit): ")
-    notes = notes + "  " + new_notes
+#refactored to force notes as string
+notes = input(str("Please enter what notes you would like to enter (type exit to exit): "))
+newNotes = ""
+#decluttered while loop with better logic 
+while (newNotes!= "exit"):
+    newNotes = input(str("Please continue entering notes (Type exit to exit): "))
+    notes += " " + newNotes
+    print(f"Notes so far: {notes}")
 
+print(f"Final notes: {notes}")
