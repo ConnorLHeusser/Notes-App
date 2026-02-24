@@ -7,4 +7,5 @@ while (newNotes!= "exit"):
     notes += " " + newNotes
     print(f"Notes so far: {notes}")
 
+#added final printout of notes taken 
 print(f"Final notes: {notes}")
