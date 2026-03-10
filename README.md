@@ -10,7 +10,9 @@ To create a build of this program first click on the green button that says code
 
 Currently the program is lacking proper UI, the functionallity to allow the user to create multiple files to store their notes in and the functionallity to allow notes made by the user to carry over to the next time the program is run.
 
+To run app, go to latest release and download the "Note-App" zip file and run the "main.py" file
 
 v2.0.1 
 
 Rebuilt the codebase adding in much needed frameworks and api's. There are still major bugs that need to be tackled but for now the code base is stabalized and going in the right direction.
+
