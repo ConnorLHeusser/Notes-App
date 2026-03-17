@@ -10,7 +10,6 @@ app = FastAPI(title="Simple Note App")
 
 # Setup templates and static files
 templates = Jinja2Templates(directory="UI")
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 notes_db = {}
