@@ -16,3 +16,15 @@ v2.0.1
 
 Rebuilt the codebase adding in much needed frameworks and api's. There are still major bugs that need to be tackled but for now the code base is stabalized and going in the right direction.
 
+Docker file
+for much simpler means of running the app, download the docker file and build it with
+
+"docker build -t noteapp_docker_file .\"
+
+And run it using:
+
+"docker run -p 8000:8000 noteapp_docker_file"
+
+everything will build automatically for you with those steps 
+
+
