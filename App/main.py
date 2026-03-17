@@ -1,187 +1,88 @@
-from fastapi import FastAPI, Request, Form, HTTPException
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 from datetime import datetime
+import uuid
 from typing import Optional
-import os
 
-app = FastAPI(title="Note Taking App")
+app = FastAPI(title="Simple Note App")
 
-if os.path.exists("static"):
-    app.mount("/static", StaticFiles(directory="static"), name="static")
-
+# Setup templates and static files
 templates = Jinja2Templates(directory="UI")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# In-memory notes storage (replace with database in production)
-notes: list[dict] = [
-    {
-        "id": 1,
-        "author": "Jaden James",
-        "title": "Testing out Fastapi",
-        "content": "Well watch ya right, im lowkey fed up of learning how to use this ",
-        "created_at": datetime.now(),
-        "color": "#667eea"
-    },
-    {
-        "id": 2,
-        "author": "Kamryn Smith",
-        "title": "Needed test data",
-        "content": "Hey hear joke nuh? BRADAM",
-        "created_at": datetime.now(),
-        "color": "#f093fb"
-    },
-]
 
-# Helper function to get next ID
-def get_next_id() -> int:
-    if not notes:
-        return 1
-    return max(note["id"] for note in notes) + 1
+notes_db = {}
 
-# API Routes (JSON)
-@app.get("/")
-async def root():
-    return {"message": "Hello World", "notes_count": len(notes)}
+# Note model
+class Note:
+    def __init__(self, title, content, color="#ffffff"):
+        self.id = str(uuid.uuid4())[:8]  # Short ID
+        self.title = title
+        self.content = content
+        self.color = color
+        self.created_at = datetime.now().strftime("%Y-%m-%d %H:%M")
+        self.updated_at = self.created_at
 
-@app.get("/api/notes")
-async def get_notes_api():
-    """Get all notes as JSON"""
-    return {"notes": notes, "count": len(notes)}
-
-@app.get("/api/notes/{note_id}")
-async def get_note_api(note_id: int):
-    """Get a specific note as JSON"""
-    note = next((n for n in notes if n["id"] == note_id), None)
-    if not note:
-        raise HTTPException(status_code=404, detail="Note not found")
-    return note
-
-@app.post("/api/notes")
-async def create_note_api(
-    title: str = Form(...),
-    content: str = Form(...),
-    author: str = Form("Anonymous"),
-    color: str = Form("#667eea")
-):
-    """Create a new note via API"""
-    new_note = {
-        "id": get_next_id(),
-        "title": title,
-        "content": content,
-        "author": author,
-        "created_at": datetime.now(),
-        "color": color
-    }
-    notes.append(new_note)
-    return new_note
-
-@app.put("/api/notes/{note_id}")
-async def update_note_api(
-    note_id: int,
-    title: str = Form(...),
-    content: str = Form(...),
-    color: str = Form(...)
-):
-    """Update a note via API"""
-    note = next((n for n in notes if n["id"] == note_id), None)
-    if not note:
-        raise HTTPException(status_code=404, detail="Note not found")
-    
-    note["title"] = title
-    note["content"] = content
-    note["color"] = color
-    return note
-
-@app.delete("/api/notes/{note_id}")
-async def delete_note_api(note_id: int):
-    """Delete a note via API"""
-    global notes
-    note = next((n for n in notes if n["id"] == note_id), None)
-    if not note:
-        raise HTTPException(status_code=404, detail="Note not found")
-    
-    notes = [n for n in notes if n["id"] != note_id]
-    return {"message": "Note deleted successfully"}
-
-# HTML Template Routes
-@app.get("/home", response_class=HTMLResponse, include_in_schema=False)
+# Routes
+@app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
-    """Home page showing all notes (uses Home.html template)"""
+    """Home page - shows all notes"""
     return templates.TemplateResponse(
-        request,
-        "Home.html",
-        {"notes": notes, "title": "My Notes Gallery"}
+        "Notes_Gallery.html", 
+        {"request": request, "notes": notes_db}
     )
 
-@app.get("/notes/new", response_class=HTMLResponse, include_in_schema=False)
-async def new_note_form(request: Request):
-    """Display form to create a new note (uses Editor.html template)"""
+@app.get("/new", response_class=HTMLResponse)
+async def new_note_page(request: Request):
+    """New note page"""
     return templates.TemplateResponse(
-        request,
-        "Editor.html",
-        {"note": None, "title": "Create Note"}
+        "Editor.html", 
+        {"request": request, "note": None, "is_new": True}
     )
 
-@app.get("/notes/{note_id}/edit", response_class=HTMLResponse, include_in_schema=False)
-async def edit_note_form(request: Request, note_id: int):
-    """Display form to edit a note (uses Editor.html template)"""
-    note = next((n for n in notes if n["id"] == note_id), None)
-    if not note:
-        raise HTTPException(status_code=404, detail="Note not found")
-    
-    return templates.TemplateResponse(
-        request,
-        "Editor.html",
-        {"note": note, "title": "Edit Note"}
-    )
-
-@app.post("/notes", response_class=HTMLResponse, include_in_schema=False)
-async def create_note_form(
-    request: Request,
+@app.post("/notes/create")
+async def create_note(
     title: str = Form(...),
     content: str = Form(...),
-    color: str = Form("#667eea"),
-    author: str = Form("Anonymous")
+    color: str = Form("#ffffff")
 ):
-    """Handle form submission to create a new note"""
-    new_note = {
-        "id": get_next_id(),
-        "title": title,
-        "content": content,
-        "author": author,
-        "created_at": datetime.now(),
-        "color": color
-    }
-    notes.append(new_note)
-    return RedirectResponse(url="/home", status_code=303)
+    """Create a new note"""
+    note = Note(title, content, color)
+    notes_db[note.id] = note
+    return RedirectResponse(url=f"/note/{note.id}", status_code=303)
 
-@app.post("/notes/{note_id}", response_class=HTMLResponse, include_in_schema=False)
-async def update_note_form(
-    request: Request,
-    note_id: int,
+@app.get("/note/{note_id}", response_class=HTMLResponse)
+async def view_note(request: Request, note_id: str):
+    """View a single note"""
+    note = notes_db.get(note_id)
+    if not note:
+        return RedirectResponse(url="/")
+    return templates.TemplateResponse(
+        "note_editor.html", 
+        {"request": request, "note": note, "is_new": False}
+    )
+
+@app.post("/notes/update/{note_id}")
+async def update_note(
+    note_id: str,
     title: str = Form(...),
     content: str = Form(...),
-    color: str = Form("#667eea")
+    color: str = Form("#ffffff")
 ):
-    """Handle form submission to update a note"""
-    note = next((n for n in notes if n["id"] == note_id), None)
-    if not note:
-        raise HTTPException(status_code=404, detail="Note not found")
-    
-    note["title"] = title
-    note["content"] = content
-    note["color"] = color
-    return RedirectResponse(url="/home", status_code=303)
+    """Update an existing note"""
+    if note_id in notes_db:
+        note = notes_db[note_id]
+        note.title = title
+        note.content = content
+        note.color = color
+        note.updated_at = datetime.now().strftime("%Y-%m-%d %H:%M")
+    return RedirectResponse(url=f"/note/{note_id}", status_code=303)
 
-@app.delete("/notes/{note_id}")
-async def delete_note(note_id: int):
-    """Delete a note (used by both API and frontend)"""
-    global notes
-    note = next((n for n in notes if n["id"] == note_id), None)
-    if not note:
-        raise HTTPException(status_code=404, detail="Note not found")
-    
-    notes = [n for n in notes if n["id"] != note_id]
-    return {"message": "Note deleted successfully"}
-
+@app.post("/notes/delete/{note_id}")
+async def delete_note(note_id: str):
+    """Delete a note"""
+    if note_id in notes_db:
+        del notes_db[note_id]
+    return RedirectResponse(url="/", status_code=303)
